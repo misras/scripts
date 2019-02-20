@@ -14,7 +14,7 @@ update_conf()
              echo "$USER user already present in $sudofile - no changes required"
              grep $USER $sudofile
         else
-             echo "$USER            ALL=(ALL) ALL" >> $sudofile
+             echo "$USER ALL=(ALL) ALL" >> $sudofile
              echo "updated the sudoers file successfully"
         fi
    else
@@ -40,13 +40,36 @@ update_conf()
 
 setup_pass()
 {
-if [ $1 == "ubuntu" ];then
-   echo $1
+echo "inside setup_pass"
+
+os="$1"
+
+if [ $1 == "sles" ];then
+  
+   if [ ! -f /usr/bin/expect ] && [ ! -f /bin/expect ];then
+#        zypper -y update
+        zypper install -y expect
+   else
+	set timeout -1
+	/usr/bin/expect <(cat <<-EOF
+	spawn passwd $USER
+	expect "New password:"
+	send -- "$passw\r"
+	expect "Retype new password:"
+	send -- "$passw\r"
+	expect eof
+	EOF
+	)
+        echo "password for USER $USER updated successfully - adding to sudoers file now"
+   fi
+
+elif [ $1 == "ubuntu" ];then
+   
    if [ ! -f /usr/bin/expect ] && [ ! -f /bin/expect ];then
         apt-get update
         apt install -y expect
    else
-        set timeout -1
+	set timeout -1
 	/usr/bin/expect <(cat <<-EOF
 	spawn passwd $USER
 	expect "Enter new UNIX password:"
@@ -86,28 +109,8 @@ elif [ $1 == "rhel" ];then
         rpm -Uvh http://epel.mirror.net.in/epel/6/x86_64/epel-release-6-8.noarch.rpm
         yum install -y expect
    else
-        set timeout -1
-        /bin/expect <(cat <<-EOF
-        spawn passwd $USER
-        expect "New password:"
-        send -- "$passw\r"
-        expect "Retype new password:"
-        send -- "$passw\r"
-        expect eof
-        EOF
-        )
-        echo "password for USER $USER updated successfully - adding to sudoers file now"
-   fi
-
-elif [ $1 == "sles" ];then
-
-   echo $1
-   if [ ! -f /usr/bin/expect ] && [ ! -f /bin/expect ];then
-#        zypper -y update
-        zypper install -y expect
-   else
 	set timeout -1
-	/usr/bin/expect <(cat <<-EOF
+	/bin/expect <(cat <<-EOF
 	spawn passwd $USER
 	expect "New password:"
 	send -- "$passw\r"
@@ -118,7 +121,8 @@ elif [ $1 == "sles" ];then
 	)
         echo "password for USER $USER updated successfully - adding to sudoers file now"
    fi
-
+else
+   echo "could not find case $1"
 fi
 
 }
@@ -131,6 +135,7 @@ passw="devops"
 
 if [ -f /etc/os-release ];then
    osname=`grep ID /etc/os-release | egrep -v 'VERSION|LIKE|VARIANT' | cut -d'=' -f2 | sed -e 's/"//' -e 's/"//'`
+   echo $osname
 else
    echo "can not locate /etc/os-release - unable find the osname"
    exit 8
