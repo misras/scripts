@@ -2,34 +2,69 @@
 
 now=`date +%d%b%Y-%H%M`
 
-exp_u()
+exp()
 {
-set timeout -1
-/usr/bin/expect <(cat <<-EOF
-spawn passwd $USER
-expect "Enter new UNIX password:"
-send -- "$passw\r"
-expect "Retype new UNIX password:"
-send -- "$passw\r"
-expect eof
-EOF
-)
-echo "password for USER $USER updated successfully - adding to sudoers file now"
+	set timeout -1
+	$1 <(cat <<-EOF
+	spawn passwd $USER
+	expect "Enter new UNIX password:"
+	send -- "$passw\r"
+	expect "Retype new UNIX password:"
+	send -- "$passw\r"
+	expect eof
+	EOF
+	)
+	echo "password for USER $USER updated successfully - adding to sudoers file now"
 }
 
-exp_o()
+setup_pass()
 {
-set timeout -1
-/bin/expect <(cat <<-EOF
-spawn passwd $USER
-expect "New password:"
-send -- "$passw\r"
-expect "Retype new password:"
-send -- "$passw\r"
-expect eof
-EOF
-)
-echo "password for USER $USER updated successfully - adding to sudoers file now"
+
+if [ $1 == "sles" ];then
+  
+   if [ ! -f /usr/bin/expect ] && [ ! -f /bin/expect ];then
+#        zypper -y update
+        zypper install -y expect
+        exp "/usr/bin/expect"
+   else
+        exp "/usr/bin/expect"
+   fi
+
+elif [ $1 == "ubuntu" ];then
+   
+   if [ ! -f /usr/bin/expect ] && [ ! -f /bin/expect ];then
+        apt-get update
+        apt install -y expect
+        exp "/usr/bin/expect"
+   else
+        exp "/usr/bin/expect"
+   fi
+
+elif [ $1 == "amzn" ];then
+
+   echo $1
+   if [ ! -f /usr/bin/expect ] && [ ! -f /bin/expect ];then
+        rpm -Uvh http://epel.mirror.net.in/epel/6/x86_64/epel-release-6-8.noarch.rpm
+        yum install -y expect
+        exp "/usr/bin/expect"
+   else
+        exp "/usr/bin/expect"
+   fi
+
+elif [ $1 == "rhel" ];then
+
+   echo $1
+   if [ ! -f /usr/bin/expect ] && [ ! -f /bin/expect ];then
+        rpm -Uvh http://epel.mirror.net.in/epel/6/x86_64/epel-release-6-8.noarch.rpm
+        yum install -y expect
+        exp "/bin/expect"
+   else
+        exp "/bin/expect"
+   fi
+else
+   echo "could not find case $1"
+fi
+
 }
 
 update_conf()
@@ -53,14 +88,14 @@ update_conf()
 
    if [ -f $sshdfile ];then
         cp -p $sshdfile /home/backup/sshd_config-$now
-	sed -i '/ClientAliveInterval.*0/d' $sshdfile
-	sed -i '/PermitRootLogin.*yes/d' $sshdfile
-	sed -i '/PasswordAuthentication.*no/d' $sshdfile
-	sed -i '/PasswordAuthentication.*yes/d' $sshdfile
-	sed -i '/PermitRootLogin.*prohibit-password/d' $sshdfile
-	echo "PermitRootLogin yes" >> $sshdfile
-	echo "PasswordAuthentication yes" >> $sshdfile
-	echo "ClientAliveInterval 240" >> $sshdfile
+        sed -i '/ClientAliveInterval.*0/d' $sshdfile
+        sed -i '/PermitRootLogin.*yes/d' $sshdfile
+        sed -i '/PasswordAuthentication.*no/d' $sshdfile
+        sed -i '/PasswordAuthentication.*yes/d' $sshdfile
+        sed -i '/PermitRootLogin.*prohibit-password/d' $sshdfile
+        echo "PermitRootLogin yes" >> $sshdfile
+        echo "PasswordAuthentication yes" >> $sshdfile
+        echo "ClientAliveInterval 240" >> $sshdfile
         echo "updated $sshdfile Successfully -- restarting sshd service"
         service sshd restart
    else
@@ -68,90 +103,10 @@ update_conf()
    fi
 }
 
-setup_pass()
-{
-echo "inside setup_pass"
-
-os="$1"
-
-if [ $1 == "sles" ];then
-  
-   if [ ! -f /usr/bin/expect ] && [ ! -f /bin/expect ];then
-#        zypper -y update
-        zypper install -y expect
-   else
-	set timeout -1
-	/usr/bin/expect <(cat <<-EOF
-	spawn passwd $USER
-	expect "New password:"
-	send -- "$passw\r"
-	expect "Retype new password:"
-	send -- "$passw\r"
-	expect eof
-	EOF
-	)
-        echo "password for USER $USER updated successfully - adding to sudoers file now"
-   fi
-
-elif [ $1 == "ubuntu" ];then
-   
-   if [ ! -f /usr/bin/expect ] && [ ! -f /bin/expect ];then
-        apt-get update
-        apt install -y expect
-   else
-	set timeout -1
-	/usr/bin/expect <(cat <<-EOF
-	spawn passwd $USER
-	expect "Enter new UNIX password:"
-	send -- "$passw\r"
-	expect "Retype new UNIX password:"
-	send -- "$passw\r"
-	expect eof
-	EOF
-	)
-        echo "password for USER $USER updated successfully - adding to sudoers file now"
-   fi
-
-elif [ $1 == "amzn" ];then
-
-   echo $1
-   if [ ! -f /usr/bin/expect ] && [ ! -f /bin/expect ];then
-        rpm -Uvh http://epel.mirror.net.in/epel/6/x86_64/epel-release-6-8.noarch.rpm
-        yum install -y expect
-   else
-	set timeout -1
-	/usr/bin/expect <(cat <<-EOF
-	spawn passwd $USER
-	expect "New password:"
-	send -- "$passw\r"
-	expect "Retype new password:"
-	send -- "$passw\r"
-	expect eof
-	EOF
-	)
-        echo "password for USER $USER updated successfully - adding to sudoers file now"
-   fi
-
-elif [ $1 == "rhel" ];then
-
-   echo $1
-   if [ ! -f /usr/bin/expect ] && [ ! -f /bin/expect ];then
-        rpm -Uvh http://epel.mirror.net.in/epel/6/x86_64/epel-release-6-8.noarch.rpm
-        yum install -y expect
-        exp_o
-   else
-        exp_o
-   fi
-else
-   echo "could not find case $1"
-fi
-
-}
-
 ############### MAIN ###################
 
-USER="test"
-GROUP="test"
+USER="devops"
+GROUP="devops"
 passw="devops"
 
 if [ -f /etc/os-release ];then
