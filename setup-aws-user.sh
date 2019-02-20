@@ -2,6 +2,36 @@
 
 now=`date +%d%b%Y-%H%M`
 
+exp_u()
+{
+set timeout -1
+/usr/bin/expect <(cat <<-EOF
+spawn passwd $USER
+expect "Enter new UNIX password:"
+send -- "$passw\r"
+expect "Retype new UNIX password:"
+send -- "$passw\r"
+expect eof
+EOF
+)
+echo "password for USER $USER updated successfully - adding to sudoers file now"
+}
+
+exp_o()
+{
+set timeout -1
+/bin/expect <(cat <<-EOF
+spawn passwd $USER
+expect "New password:"
+send -- "$passw\r"
+expect "Retype new password:"
+send -- "$passw\r"
+expect eof
+EOF
+)
+echo "password for USER $USER updated successfully - adding to sudoers file now"
+}
+
 update_conf()
 {
    sudofile="/etc/sudoers"
@@ -108,18 +138,9 @@ elif [ $1 == "rhel" ];then
    if [ ! -f /usr/bin/expect ] && [ ! -f /bin/expect ];then
         rpm -Uvh http://epel.mirror.net.in/epel/6/x86_64/epel-release-6-8.noarch.rpm
         yum install -y expect
+        exp_o
    else
-	set timeout -1
-	/bin/expect <(cat <<-EOF
-	spawn passwd $USER
-	expect "New password:"
-	send -- "$passw\r"
-	expect "Retype new password:"
-	send -- "$passw\r"
-	expect eof
-	EOF
-	)
-        echo "password for USER $USER updated successfully - adding to sudoers file now"
+        exp_o
    fi
 else
    echo "could not find case $1"
