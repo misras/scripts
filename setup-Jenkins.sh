@@ -33,7 +33,7 @@ cp -p /etc/profile /home/backup/profile_`date +%d%b%Y-%H%M`
 echo "MAVEN_HOME=/opt/apache-maven-3.6.0" >> /etc/profile
 echo "JAVA_HOME=/usr/lib/jvm/java-8-oracle" >> /etc/profile
 echo "PATH=\$JAVA_HOME/bin:\$MAVEN_HOME/bin:\$PATH" >> /etc/profile
-source /etc/profile  ## to reload the configuration
+. /etc/profile  ## to reload the configuration
 
 exit
 
