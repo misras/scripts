@@ -1,7 +1,7 @@
 #!/bin/bash
 
 
-sudo apt install unzip wget
+sudo apt install -y unzip wget
 #Install JAVA
 
 sudo add-apt-repository ppa:webupd8team/java
