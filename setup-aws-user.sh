@@ -78,7 +78,8 @@ update_conf()
              echo "$USER user already present in $sudofile - no changes required"
              grep $USER $sudofile
         else
-             echo "$USER ALL=(ALL) ALL" >> $sudofile
+#             echo "$USER ALL=(ALL) ALL" >> $sudofile
+             echo "$USER ALL=(ALL) NOPASSWD: ALL" >> $sudofile
              echo "updated the sudoers file successfully"
         fi
    else
