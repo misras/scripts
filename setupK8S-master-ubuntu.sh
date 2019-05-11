@@ -51,7 +51,7 @@ echo " "
 
 #### k8s with flannel pod network
 echo "initializing kubernetes master ... may take couple of minutes ...."
-sudo kubeadm init --pod-network-cidr=10.244.0.0/16 | grep discovery-token-ca-cert-hash > /tmp/kube-node-join.sh
+sudo kubeadm init --pod-network-cidr=10.244.0.0/16 
 if [ $? -eq 0 ];then
    echo " "
    echo "kubernetes master initiazied successfully..."
