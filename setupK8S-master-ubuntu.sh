@@ -55,7 +55,6 @@ sudo kubeadm init --pod-network-cidr=10.244.0.0/16
 if [ $? -eq 0 ];then
    echo " "
    echo "kubernetes master initiazied successfully..."
-   echo "for kubeadm join command look at /tmp/kube-node-join.sh file"
    echo "setting up kube config for User `whoami` ......"
    sudo mkdir -p $HOME/.kube
    sudo rm $HOME/.kube/config
